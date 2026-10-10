@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>To-Do</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f1ec;--card:#fff;--ink:#222;--mute:#777;--line:#e2ded5;--acc:#2f6f5e;--del:#a43d3d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#16181a;--card:#222527;--ink:#eee;--mute:#999;--line:#363a3d;--acc:#5fb59d;--del:#e07a7a}}
+:root[data-theme="dark"]{--bg:#16181a;--card:#222527;--ink:#eee;--mute:#999;--line:#363a3d;--acc:#5fb59d;--del:#e07a7a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:1rem/1.5 system-ui,"Segoe UI",sans-serif;padding:20px 14px}
+main{max-width:560px;margin:0 auto}
+h1{margin:0 0 14px;font-size:1.6rem}
+h2{font-size:1.1rem;margin:26px 0 8px}
+.count{color:var(--mute);font-weight:400;font-size:.95rem}
+.add{display:flex;gap:8px}
+input[type=text]{flex:1;min-width:0;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+button{font:inherit;padding:10px 14px;border:0;border-radius:10px;background:var(--acc);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);padding:6px 10px;font-size:.85rem}
+button.del{color:var(--del)}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;flex-wrap:wrap}
+li .body{flex:1;min-width:140px}
+li .time{display:block;font-size:.75rem;color:var(--mute)}
+li.done .txt{text-decoration:line-through;color:var(--mute)}
+li input[type=checkbox]{width:20px;height:20px;accent-color:var(--acc)}
+.empty{color:var(--mute);text-align:center;padding:18px;border:1px dashed var(--line);border-radius:12px}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <h1>My tasks</h1>
+  <div class="add">
+    <input type="text" id="newTask" placeholder="What needs doing?" aria-label="New task" maxlength="120">
+    <button id="addBtn">Add Task</button>
+  </div>
+  <h2>Pending Tasks <span class="count" id="pCount"></span></h2>
+  <ul id="pending"></ul>
+  <h2>Completed Tasks <span class="count" id="cCount"></span></h2>
+  <ul id="completed"></ul>
+</main>
+<script>
+(function () {
+  var KEY = 'todo-tasks-v1';
+  var tasks = [];
+  var editingId = null;
+
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved) tasks = JSON.parse(saved) || [];
+  } catch (e) { tasks = []; }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(tasks)); } catch (e) {}
+  }
+
+  function stamp(ts) {
+    return new Date(ts).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+
+  function findTask(id) {
+    for (var i = 0; i < tasks.length; i++) if (tasks[i].id === id) return tasks[i];
+    return null;
+  }
+
+  function button(label, cls, handler) {
+    var b = document.createElement('button');
+    b.textContent = label;
+    b.className = 'ghost ' + cls;
+    b.addEventListener('click', handler);
+    return b;
+  }
+
+  function buildItem(t) {
+    var li = document.createElement('li');
+    if (t.done) li.className = 'done';
+
+    var box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = t.done;
+    box.setAttribute('aria-label', 'Mark complete');
+    box.addEventListener('change', function () {
+      t.done = box.checked;
+      t.completedAt = t.done ? Date.now() : null;
+      save(); render();
+    });
+    li.appendChild(box);
+
+    var body = document.createElement('div');
+    body.className = 'body';
+
+    if (editingId === t.id) {
+      var field = document.createElement('input');
+      field.type = 'text';
+      field.value = t.text;
+      field.maxLength = 120;
+      field.setAttribute('aria-label', 'Edit task');
+      field.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') commitEdit(t, field.value);
+        if (e.key === 'Escape') { editingId = null; render(); }
+      });
+      body.appendChild(field);
+      li.appendChild(body);
+      li.appendChild(button('Save', '', function () { commitEdit(t, field.value); }));
+      setTimeout(function () { field.focus(); }, 0);
+    } else {
+      var txt = document.createElement('span');
+      txt.className = 'txt';
+      txt.textContent = t.text;
+      var time = document.createElement('span');
+      time.className = 'time';
+      time.textContent = t.done && t.completedAt
+        ? 'Completed ' + stamp(t.completedAt)
+        : 'Added ' + stamp(t.createdAt);
+      body.appendChild(txt);
+      body.appendChild(time);
+      li.appendChild(body);
+      li.appendChild(button('Edit', '', function () { editingId = t.id; render(); }));
+    }
+
+    li.appendChild(button('Delete', 'del', function () {
+      tasks = tasks.filter(function (x) { return x.id !== t.id; });
+      save(); render();
+    }));
+    return li;
+  }
+
+  function commitEdit(t, value) {
+    var v = value.trim();
+    if (v) t.text = v;
+    editingId = null;
+    save(); render();
+  }
+
+  function fill(listEl, items, emptyMsg) {
+    listEl.textContent = '';
+    if (!items.length) {
+      var li = document.createElement('li');
+      li.className = 'empty';
+      li.style.display = 'block';
+      li.textContent = emptyMsg;
+      listEl.appendChild(li);
+      return;
+    }
+    items.forEach(function (t) { listEl.appendChild(buildItem(t)); });
+  }
+
+  function render() {
+    var p = tasks.filter(function (t) { return !t.done; });
+    var c = tasks.filter(function (t) { return t.done; });
+    document.getElementById('pCount').textContent = '(' + p.length + ' pending)';
+    document.getElementById('cCount').textContent = '(' + c.length + ' completed)';
+    fill(document.getElementById('pending'), p, 'Nothing pending. Add a task above to get started.');
+    fill(document.getElementById('completed'), c, 'No completed tasks yet. Finish one and it will show up here.');
+  }
+
+  var input = document.getElementById('newTask');
+  function addTask() {
+    var v = input.value.trim();
+    if (!v) { input.focus(); return; }
+    tasks.unshift({ id: Date.now() + Math.random(), text: v, done: false, createdAt: Date.now(), completedAt: null });
+    input.value = '';
+    save(); render(); input.focus();
+  }
+  document.getElementById('addBtn').addEventListener('click', addTask);
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') addTask(); });
+
+  render();
+})();
+</script>
+</body>
+</html>

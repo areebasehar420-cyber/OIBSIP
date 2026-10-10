@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculator</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#e9e4dc; --body:#2b2f36; --screen:#c9d6c0; --ink:#1d241b; --key:#f6f3ee; --keyink:#23262b;
+  --op:#3d6b7a; --opink:#fff; --eq:#c2562f; --clr:#8a3b3b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#15171a;--body:#0f1012;--screen:#a9b9a0;--key:#2a2d33;--keyink:#eee;--op:#2f5663;}
+}
+:root[data-theme="dark"]{--bg:#15171a;--body:#0f1012;--screen:#a9b9a0;--key:#2a2d33;--keyink:#eee;--op:#2f5663;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;padding:16px}
+.calc{width:100%;max-width:340px;background:var(--body);border-radius:22px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,.28)}
+.screen{background:var(--screen);color:var(--ink);border-radius:12px;padding:10px 14px;margin-bottom:16px;text-align:right;min-height:96px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:inset 0 2px 6px rgba(0,0,0,.25)}
+.history{font-size:.95rem;min-height:1.3em;opacity:.65;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.current{font-size:2.3rem;font-family:"Courier New",monospace;font-weight:700;overflow-x:auto;white-space:nowrap}
+.current.error{font-size:1.3rem;color:#7a1f1f}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);grid-gap:10px}
+button{font:inherit;font-size:1.3rem;border:0;border-radius:12px;padding:16px 0;background:var(--key);color:var(--keyink);cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
+button.op{background:var(--op);color:var(--opink)}
+button.clear{background:var(--clr);color:#fff}
+button.eq{background:var(--eq);color:#fff;grid-row:span 2}
+button.zero{grid-column:span 2}
+</style>
+</head>
+<body>
+<main class="calc">
+  <div class="screen" aria-live="polite">
+    <div class="history" id="history"></div>
+    <div class="current" id="current">0</div>
+  </div>
+  <div class="keys" id="keys">
+    <button class="clear" data-action="clear">C</button>
+    <button class="op" data-action="back" aria-label="Backspace">⌫</button>
+    <button class="op" data-op="/">÷</button>
+    <button class="op" data-op="*">×</button>
+
+    <button data-num="7">7</button>
+    <button data-num="8">8</button>
+    <button data-num="9">9</button>
+    <button class="op" data-op="-">−</button>
+
+    <button data-num="4">4</button>
+    <button data-num="5">5</button>
+    <button data-num="6">6</button>
+    <button class="op" data-op="+">+</button>
+
+    <button data-num="1">1</button>
+    <button data-num="2">2</button>
+    <button data-num="3">3</button>
+    <button class="eq" data-action="equals">=</button>
+
+    <button class="zero" data-num="0">0</button>
+    <button data-action="dot">.</button>
+  </div>
+</main>
+<script>
+(function () {
+  var currentEl = document.getElementById('current');
+  var historyEl = document.getElementById('history');
+  var symbols = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+  var entry = '0';        // text being typed
+  var stored = null;      // running result
+  var pendingOp = null;   // operator waiting for the next number
+  var fresh = false;      // next digit starts a new entry
+  var errored = false;
+
+  function compute(a, op, b) {
+    switch (op) {
+      case '+': return a + b;
+      case '-': return a - b;
+      case '*': return a * b;
+      case '/': return b === 0 ? null : a / b;
+      default: return b;
+    }
+  }
+
+  function fmt(n) {
+    return String(parseFloat(n.toPrecision(12)));
+  }
+
+  function render() {
+    currentEl.textContent = entry;
+    currentEl.classList.toggle('error', errored);
+    historyEl.textContent = (stored !== null && pendingOp) ? fmt(stored) + ' ' + symbols[pendingOp] : '';
+  }
+
+  function showError() {
+    entry = 'Cannot divide by zero';
+    errored = true;
+    stored = null;
+    pendingOp = null;
+    fresh = true;
+    render();
+  }
+
+  function reset() {
+    entry = '0'; stored = null; pendingOp = null; fresh = false; errored = false;
+    render();
+  }
+
+  function inputDigit(d) {
+    if (errored) reset();
+    if (fresh) { entry = '0'; fresh = false; }
+    if (entry === '0') entry = d;
+    else if (entry.length < 15) entry += d;
+    render();
+  }
+
+  function inputDot() {
+    if (errored) reset();
+    if (fresh) { entry = '0'; fresh = false; }
+    if (entry.indexOf('.') === -1) entry += '.';
+    render();
+  }
+
+  function backspace() {
+    if (errored) { reset(); return; }
+    if (fresh) return;
+    entry = entry.length > 1 ? entry.slice(0, -1) : '0';
+    if (entry === '-') entry = '0';
+    render();
+  }
+
+  function chooseOp(op) {
+    if (errored) return;
+    var value = parseFloat(entry);
+    if (pendingOp && !fresh) {
+      var result = compute(stored, pendingOp, value);
+      if (result === null) { showError(); return; }
+      stored = result;
+      entry = fmt(result);
+    } else if (!pendingOp) {
+      stored = value;
+    }
+    pendingOp = op;
+    fresh = true;
+    render();
+  }
+
+  function equals() {
+    if (errored || !pendingOp) return;
+    var result = compute(stored, pendingOp, parseFloat(entry));
+    if (result === null) { showError(); return; }
+    entry = fmt(result);
+    stored = null;
+    pendingOp = null;
+    fresh = true;
+    render();
+  }
+
+  var buttons = document.querySelectorAll('#keys button');
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener('click', function (e) {
+      var b = e.currentTarget;
+      if (b.dataset.num !== undefined) inputDigit(b.dataset.num);
+      else if (b.dataset.op) chooseOp(b.dataset.op);
+      else {
+        switch (b.dataset.action) {
+          case 'clear': reset(); break;
+          case 'back': backspace(); break;
+          case 'dot': inputDot(); break;
+          case 'equals': equals(); break;
+        }
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key >= '0' && e.key <= '9') inputDigit(e.key);
+    else if (e.key === '.') inputDot();
+    else if ('+-*/'.indexOf(e.key) !== -1) chooseOp(e.key);
+    else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); equals(); }
+    else if (e.key === 'Backspace') backspace();
+    else if (e.key === 'Escape') reset();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

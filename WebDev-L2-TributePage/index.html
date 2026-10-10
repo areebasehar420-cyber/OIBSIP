@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marie Curie · A Tribute</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--night:#0f2a2e;--glow:#7ff0c4;--paper:#f5efe3;--ink:#22272b;--sand:#e4d8c0;--teal:#1d5a5f;--rust:#b4532a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:1.05rem/1.7 "Helvetica Neue",Arial,sans-serif}
+h1,h2,blockquote,.year{font-family:Georgia,"Times New Roman",serif}
+section{padding:56px 20px}
+.wrap{max-width:720px;margin:0 auto}
+header{background:var(--night);color:#fff;text-align:center;padding:56px 20px 48px}
+header h1{font-size:clamp(2.2rem,8vw,3.8rem);margin:18px 0 6px;font-weight:400;letter-spacing:.5px}
+header p{margin:0;color:var(--glow);font-style:italic;font-family:Georgia,serif;font-size:1.15rem}
+.portrait{width:min(300px,80%);height:auto;display:block;margin:0 auto}
+figcaption{font-size:.8rem;opacity:.7;margin-top:8px}
+h2{font-size:1.9rem;font-weight:400;margin:0 0 20px;color:var(--teal)}
+#bio{background:var(--paper)}
+#timeline{background:var(--sand)}
+ol{list-style:none;margin:0;padding:0 0 0 18px;border-left:3px solid var(--teal)}
+li{position:relative;margin:0 0 22px;padding-left:18px}
+li::before{content:"";position:absolute;left:-28px;top:9px;width:13px;height:13px;border-radius:50%;background:var(--rust)}
+.year{font-weight:700;color:var(--rust);font-size:1.2rem;display:block}
+#quote{background:var(--teal);color:#fff;text-align:center}
+blockquote{margin:0 auto;max-width:640px;font-size:clamp(1.4rem,5vw,2rem);line-height:1.4;font-style:italic;border-top:2px solid var(--glow);border-bottom:2px solid var(--glow);padding:28px 8px}
+blockquote cite{display:block;margin-top:14px;font-size:1rem;font-style:normal;color:var(--glow)}
+footer{background:var(--night);color:#cfe;text-align:center;padding:28px 20px;font-size:.9rem}
+</style>
+</head>
+<body>
+<header>
+  <figure style="margin:0">
+    <svg class="portrait" viewBox="0 0 300 300" role="img" aria-label="Illustration of a glowing flask, a nod to Marie Curie's radium">
+      <defs><radialGradient id="g"><stop offset="0" stop-color="#7ff0c4" stop-opacity=".9"/><stop offset="1" stop-color="#7ff0c4" stop-opacity="0"/></radialGradient></defs>
+      <circle cx="150" cy="170" r="130" fill="url(#g)"/>
+      <path d="M128 40h44v70l60 110a22 22 0 0 1-19 33H87a22 22 0 0 1-19-33l60-110z" fill="#10373c" stroke="#7ff0c4" stroke-width="4"/>
+      <path d="M96 205h108l28 50a10 10 0 0 1-9 15H77a10 10 0 0 1-9-15z" fill="#7ff0c4" opacity=".85"/>
+      <circle cx="140" cy="225" r="6" fill="#fff" opacity=".8"/><circle cx="168" cy="240" r="4" fill="#fff" opacity=".8"/>
+    </svg>
+    <figcaption>Illustration. Swap in a public-domain portrait from Wikimedia Commons if you like.</figcaption>
+  </figure>
+  <h1>Marie Curie</h1>
+  <p>She chased invisible light and changed what we know about matter.</p>
+</header>
+
+<section id="bio"><div class="wrap">
+  <h2>A life in the laboratory</h2>
+  <p>Maria Skłodowska was born in Warsaw in 1867, when women in Russian-ruled Poland were barred from university. She studied in secret classes and saved money for years so she could travel to Paris. In 1891 she enrolled at the Sorbonne, living on very little and working until late in cold rented rooms.</p>
+  <p>In Paris she met Pierre Curie, a physicist, and they married in 1895. Inspired by Henri Becquerel's finding that uranium gives off mysterious rays, Marie began measuring that radiation carefully. She noticed that some ores were far more active than their uranium content explained, and concluded that they must hide new elements.</p>
+  <p>Processing tonnes of ore in a draughty shed, the Curies announced polonium, named for her homeland, and then radium in 1898. She coined the word "radioactivity" for the phenomenon. In 1903 she shared the Nobel Prize in Physics, becoming the first woman to win a Nobel. After Pierre's sudden death in 1906 she took over his teaching post and became the Sorbonne's first female professor.</p>
+  <p>Her 1911 Nobel Prize in Chemistry made her the first person honoured in two scientific fields. During the First World War she helped equip vehicles with X-ray machines and trained operators so surgeons could find shrapnel in wounded soldiers. She died in 1934 from a blood disease most likely linked to her years of exposure to radiation, leaving behind a lasting legacy of research and of doors opened for women in science.</p>
+</div></section>
+
+<section id="timeline"><div class="wrap">
+  <h2>Key moments</h2>
+  <ol>
+    <li><span class="year">1867</span>Born in Warsaw, Poland.</li>
+    <li><span class="year">1891</span>Begins studying physics and mathematics in Paris.</li>
+    <li><span class="year">1898</span>Announces the discovery of polonium and radium.</li>
+    <li><span class="year">1903</span>Shares the Nobel Prize in Physics.</li>
+    <li><span class="year">1906</span>Becomes the first woman to teach at the Sorbonne.</li>
+    <li><span class="year">1911</span>Wins the Nobel Prize in Chemistry.</li>
+    <li><span class="year">1914</span>Radium Institute opens in Paris; war service with mobile X-ray units follows.</li>
+    <li><span class="year">1934</span>Dies in Passy, France.</li>
+  </ol>
+</div></section>
+
+<section id="quote"><div class="wrap">
+  <blockquote>Nothing in life is to be feared, it is only to be understood.<cite>Marie Curie</cite></blockquote>
+</div></section>
+
+<footer>A tribute page. Facts paraphrased from Wikipedia and Britannica.</footer>
+</body>
+</html>
